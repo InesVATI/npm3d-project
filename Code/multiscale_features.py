@@ -5,6 +5,8 @@ from inspect_data import get_dataset
 from typing import Optional, Tuple, Literal
 import time 
 
+from pathlib import Path
+
 def PCA(points: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """
     Compute the PCA of a set of points
@@ -23,15 +25,19 @@ def compute_local_PCA(query_points : np.ndarray,
                       neighborhood_def: Literal["spherical", "knn"] = "spherical",
                       radius : Optional[float]=None,
                       k: Optional[int]=None,
-                      plot_hist: bool = False) -> Tuple[np.ndarray, np.ndarray]:
+                      plot_hist: bool = False,
+                      figure_file : str = 'neigh_hist.png') -> Tuple[np.ndarray, np.ndarray]:
     """
     Compute the local PCA of a set of points in a point cloud
     :param query_points: points to compute PCA on
     :param cloud_points: point cloud
     :param radius: radius of the spherical neighborhood to consider if neighborhood_def is "spherical"
     :param k: number of neighbors to consider if neighborhood_def is "knn"
-    
+    :param plot_hist: whether to plot the histogram of the number of neighbors
+    :param figure_file: file path to save the histogram if plot_hist is True
+
     Returns: 
+        query_neighborhoods: array of indices of the neighbors of each query point
         all_eigenvalues: (N, 3)-array
         all_eigenvectors: (N, 3, 3)-array
     """
@@ -39,9 +45,9 @@ def compute_local_PCA(query_points : np.ndarray,
     tree = KDTree(cloud_points)
     query_neighborhoods = (
         tree.query_radius(query_points, r=radius)
-        if neighborhood_def == "spherical"
+        if neighborhood_def.lower() == "spherical"
         else tree.query(query_points, k=k, return_distance=False)
-        if neighborhood_def == "knn"
+        if neighborhood_def.lower() == "knn"
         else None
     )
     if query_neighborhoods is None:
@@ -49,15 +55,17 @@ def compute_local_PCA(query_points : np.ndarray,
 
     # plot histogram of the number of neighbors
     if plot_hist:
+        fig = plt.figure()
         neighborhood_sizes = [neighborhood.shape[0] for neighborhood in query_neighborhoods] 
         print(
-            f"Average size of neighborhood: {neighborhood_sizes.mean()}\n",
+            f"Average size of neighborhood: {np.mean(neighborhood_sizes)}\n",
             f"Minimal number of neighbors: {np.min(neighborhood_sizes)}, Maximum number of neighbors: {np.max(neighborhood_sizes)}"
         )
-        bins_values, _, _ = plt.hist(neighborhood_sizes, bins="auto")
+        bins_values, _, _ = plt.hist(neighborhood_sizes, bins="auto", rwidth=.8)
         plt.title(f"Histogram of the neighborhood sizes for {bins_values.shape[0]} bins")
         plt.xlabel('Number of neighbors')
         plt.ylabel('Number of neighborhoods')
+        fig.savefig(figure_file)
 
     # compute PCA for each neighborhood
     all_eigenvalues = np.zeros((query_points.shape[0], 3))
@@ -65,16 +73,43 @@ def compute_local_PCA(query_points : np.ndarray,
     for i in range(len(query_neighborhoods)):
         all_eigenvalues[i], all_eigenvectors[i] = PCA(cloud_points[query_neighborhoods[i]])
 
-    return all_eigenvalues, all_eigenvectors
+    return query_neighborhoods, all_eigenvalues, all_eigenvectors
 
-def compute_features(all_eigenvalues: np.ndarray,
-                     all_eigenvectors: np.ndarray) -> np.ndarray:
+def compute_moment_features(cloud: np.ndarray,
+                            query_points: np.ndarray,
+                            query_neighbor_indices: np.ndarray,
+                            all_eigenvectors: np.ndarray) -> np.ndarray:
+
+    # Absolute moments and vertical moments
+    absolute_moments = np.zeros((query_points.shape[0], 6))
+    vertical_moments = np.zeros((query_points.shape[0], 2))
+
+    for i, point in enumerate(query_points):
+        D = cloud[query_neighbor_indices[i]] - point
+
+        absolute_moments[i] = np.array([np.abs(np.mean(D @ all_eigenvectors[i, :, 0]) ), # first order moment around smallest eigenvector
+                                        np.abs(np.mean(D @ all_eigenvectors[i, :, 1]) ), # first order moment around middle eigenvector
+                                        np.mean(D @ all_eigenvectors[i, :, 2] ), # first order moment around largest eigenvector
+                                        np.mean( (D @ all_eigenvectors[i, :, 0])**2 ), # second order moment around smallest eigenvector
+                                        np.mean( (D @ all_eigenvectors[i, :, 1])**2 ), # second order moment around middle eigenvector
+                                        np.mean( (D @ all_eigenvectors[i, :, 2])**2 )  # second order moment around largest eigenvector
+                                        ])
+        vertical_moments[i] = np.array([np.mean(D[:, 2]), # first order vertical moment (around e_z)
+                                        np.mean(D[:, 2]**2) # second order vertical moment (around e_z)
+                                        ])
+    return np.concatenate((absolute_moments, vertical_moments), axis=1)
+
+
+def compute_Thomas_features(cloud: np.ndarray, query_points: np.ndarray,
+                            query_neighbor_indices: np.ndarray,
+                            all_eigenvalues: np.ndarray,
+                            all_eigenvectors: np.ndarray) -> np.ndarray:
     """
     Compute the features from the eigenvalues and eigenvectors
     :param all_eigenvalues: (N, 3)-array
     :param all_eigenvectors: (N, 3, 3)-array
     Returns:
-        features: (N, 11)-array
+        features: (N, n)-array where N is the number of points to compute the features on and n is the number of features
     """
     eps = 1e-8
     sum_eigenvalues = all_eigenvalues.sum(axis=1)
@@ -84,13 +119,25 @@ def compute_features(all_eigenvalues: np.ndarray,
     planarity = (all_eigenvalues[:, 1] - all_eigenvalues[:, 0]) / (all_eigenvalues[:, 2] + eps)
     sphericity = all_eigenvalues[:, 0] / (all_eigenvalues[:, 2] + eps)
     change_curvature = all_eigenvalues[:, 2] / (sum_eigenvalues + eps)
-
     verticality_smallest = np.abs(np.arcsin(all_eigenvectors[:, 2, 0]))
-    verticlaity_largest = np.abs(np.arcsin(all_eigenvectors[:, 2, 2]))
-    
+    verticality_largest = np.abs(np.arcsin(all_eigenvectors[:, 2, 2]))
 
+    neighborhood_sizes = np.array([[neighborhood.shape[0]] for neighborhood in query_neighbor_indices])
 
-    features = np.concatenate((all_eigenvalues, all_eigenvectors.reshape(-1, 9)), axis=1)
+    # Absolute moments
+    moment_features = compute_moment_features(cloud, query_points, query_neighbor_indices, all_eigenvectors)
+
+    features = np.hstack((np.stack((sum_eigenvalues,
+                                        omnivariance,
+                                        eigenentropy,
+                                        linearity,
+                                        planarity,
+                                        sphericity,
+                                        change_curvature,
+                                        verticality_smallest,
+                                        verticality_largest), axis=1),
+                                moment_features,
+                                neighborhood_sizes))
     return features
 
 def extract_multiscale_features(query_points: np.ndarray,
@@ -105,9 +152,21 @@ def extract_multiscale_features(query_points: np.ndarray,
     :param r0: smallest radius for spherical neighborhood
     :param nb_scales: number of scales
     Returns:
-        features: (N, 9*nb_scales)-array
+        features: (N, n*nb_scales)-array, where is the number of features at each scale (here, 18)
     """
-    pass
+    features = np.zeros((query_points.shape[0], 18*nb_scales))
+
+    for i in range(nb_scales):
+        if i == 0:
+            pass
+
+        # compute features on subsampled clouds
+        else:
+            radius = r0*(ratio_radius**i)
+            subsampled_cloud = None
+
+
+    return features
 
 def grid_subsampling(cloud, voxel_size=.1):
     """
@@ -134,11 +193,29 @@ def grid_subsampling(cloud, voxel_size=.1):
     return subsampled_cloud
     
 
-
 if __name__ == '__main__':
-    check("Other")
-    # cloud, label = get_dataset()
+    
+    root_folder = Path(__file__).parent.parent
+    figure_folder = root_folder / 'Figures'
 
+    cloud, label = get_dataset()
+
+    # select random training set and testing set
+    training_points = cloud[:10]
+    time0 = time.time()
+    query_neighbor_indices, all_eigenvalues, all_eigenvectors = compute_local_PCA(training_points, cloud, 
+                                                                               neighborhood_def="spherical",
+                                                                               radius=.1, plot_hist=False, 
+                                                                               figure_file=figure_folder / 'neigh_hist_scale0.png')
+    t1 = time.time()
+    print('compute PCA took', t1-time0, 'seconds')
+    
+    t0 = time.time()
+    features = compute_Thomas_features(cloud, training_points, query_neighbor_indices, all_eigenvalues, all_eigenvectors)
+    t1 = time.time()
+    print('compute Thomas features took', t1-t0, 'seconds')
+    print('moment_feature', features.shape)
+    print(np.min(features), np.max(features[:-1]))
     # t0 = time.time()
     # subsampled_cloud = grid_subsampling(cloud, voxel_size=1)
     # t1 = time.time()

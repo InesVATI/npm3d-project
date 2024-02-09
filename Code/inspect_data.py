@@ -3,8 +3,13 @@ import pandas as pd
 from ply import write_ply, read_ply
 import xml.etree.ElementTree as ET
 import json
+from pathlib import Path
 
-def get_dataset(filename='Cassette_idclass/Cassette_GT.ply'):
+root_folder = Path(__file__).parent.parent
+data_folder = root_folder / '__Cassette_idclass'
+cloud_path = data_folder / 'Cassette_GT.ply'
+
+def get_dataset(filename=cloud_path):
     cloud_ply = read_ply(filename)
     cloud = np.vstack((cloud_ply['x'], cloud_ply['y'], cloud_ply['z'])).T
 
@@ -14,7 +19,7 @@ def get_dataset(filename='Cassette_idclass/Cassette_GT.ply'):
     return cloud, label
 
 if __name__ == '__main__':
-    cloud_path = 'Cassette_idclass/Cassette_GT.ply'
+    
     cloud_ply = read_ply(cloud_path)
     # print('id', cloud_ply['id'].shape)
     # # v = np.unique(cloud_ply['id'])
