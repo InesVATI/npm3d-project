@@ -1,11 +1,16 @@
 import numpy as np
 import matplotlib.pyplot as plt 
 from sklearn.neighbors import KDTree
-from inspect_data import get_dataset
+from Code.process_data import get_dataset
+from Code.utils import grid_subsampling
 from typing import Optional, Tuple, Literal
 import time 
+import pickle
 
 from pathlib import Path
+
+root_folder = Path(__file__).parent.parent
+figure_folder = root_folder / 'Figures'
 
 def PCA(points: np.ndarray) -> Tuple[np.ndarray, np.ndarray]:
     """
@@ -151,77 +156,116 @@ def extract_multiscale_features(query_points: np.ndarray,
     Extract multiscale features from a subset of points (training or testing set) in point cloud
     :param r0: smallest radius for spherical neighborhood
     :param nb_scales: number of scales
+    :param rho: ratio of radius and grid size
     Returns:
-        features: (N, n*nb_scales)-array, where is the number of features at each scale (here, 18)
+        features: (N, n*nb_scales)-array, where n is the number of features at each scale (here, 18)
     """
     features = np.zeros((query_points.shape[0], 18*nb_scales))
+    pos_cloud = cloud - np.min(cloud, axis=0)
 
     for i in range(nb_scales):
-        if i == 0:
-            pass
+        radius = r0*(ratio_radius**i) 
+
+        if i == 0: # compute features on the original cloud
+            query_neighbor_indices, all_eigenvalues, all_eigenvectors = compute_local_PCA(query_points, cloud, 
+                                                                               neighborhood_def="spherical",
+                                                                               radius=radius, 
+                                                                               plot_hist=False, 
+                                                                               figure_file=figure_folder / f'neigh_hist_scale{i}.png')
+    
+            features[:, i*18:(i+1)*18] = compute_Thomas_features(cloud,
+                                                                 query_points,
+                                                                 query_neighbor_indices,
+                                                                 all_eigenvalues,
+                                                                 all_eigenvectors)
 
         # compute features on subsampled clouds
         else:
-            radius = r0*(ratio_radius**i)
-            subsampled_cloud = None
+            voxel_size = radius/rho
+            non_empty_voxel_id, inverse, nb_pt_in_voxel_id = np.unique( pos_cloud // voxel_size,
+                                                                        return_inverse=True,
+                                                                        return_counts=True,
+                                                                        axis=0)
+            indices_in_voxels = np.argsort(inverse)
+            subsampled_cloud = np.zeros((len(non_empty_voxel_id), 3), cloud.dtype)
+            indices_original_query_pts = [] # list containing the indices in the original query points associated to each centroid
+            # original_query_pts_not_visited = np.repeat(True, query_points.shape[0])
+            new_query_points = np.empty((0, 3), dtype=query_points.dtype)
+            last_seen = 0
+            for j in range(len(non_empty_voxel_id)):
+                voxels = cloud[indices_in_voxels[last_seen : last_seen + nb_pt_in_voxel_id[j]]]
+                subsampled_cloud[j] = voxels.mean(axis=0)
+                last_seen += nb_pt_in_voxel_id[j]
+                # [original_query_pts_not_visited]
+                idx = np.where( np.isin( query_points, voxels, assume_unique=True).all(axis=1))[0]
+                if len(idx) > 0:
+                    indices_original_query_pts.append( idx )
+                    new_query_points = np.vstack((new_query_points, subsampled_cloud[j]))
+                    # original_query_pts_not_visited[idx] = False
 
-
+            query_neighbor_indices, all_eigenvalues, all_eigenvectors = compute_local_PCA(new_query_points, 
+                                                                                          subsampled_cloud,
+                                                                                          neighborhood_def="spherical",
+                                                                                          radius=radius,
+                                                                                          plot_hist=False,
+                                                                                          figure_file=figure_folder / f'neigh_hist_scale{i}.png')
+            feats = compute_Thomas_features(subsampled_cloud,
+                                            new_query_points,
+                                            query_neighbor_indices,
+                                            all_eigenvalues,
+                                            all_eigenvectors) # nb_new_query_points x 18
+            
+            for j, idx in enumerate(indices_original_query_pts):
+                features[idx, i*18:(i+1)*18] = feats[j]
+                
     return features
-
-def grid_subsampling(cloud, voxel_size=.1):
-    """
-    Subsample point cloud by a grid method
-    :param cloud: Nx3 array of the point cloud
-    :param cell_size: size of the grid
-    :return: subsampled cloud
-    """
-    
-    non_empty_voxel_id, inverse, nb_points_in_voxels = np.unique( (cloud - np.min(cloud, axis=0)) // voxel_size,
-                                                                 return_inverse=True,
-                                                                 return_counts=True,
-                                                                 axis=0)
-    idx_in_voxels = np.argsort(inverse)
-    subsampled_cloud = np.zeros((len(non_empty_voxel_id), 3), cloud.dtype)
-    last_seen = 0
-    for i in range(len(non_empty_voxel_id)):
-
-        voxels = cloud[ idx_in_voxels[last_seen : last_seen + nb_points_in_voxels[i]]]
-        subsampled_cloud[i] = voxels.mean(axis=0)
-
-        last_seen += nb_points_in_voxels[i]
-
-    return subsampled_cloud
     
 
 if __name__ == '__main__':
-    
-    root_folder = Path(__file__).parent.parent
-    figure_folder = root_folder / 'Figures'
 
     cloud, label = get_dataset()
 
-    # select random training set and testing set
-    training_points = cloud[:10]
-    time0 = time.time()
-    query_neighbor_indices, all_eigenvalues, all_eigenvectors = compute_local_PCA(training_points, cloud, 
-                                                                               neighborhood_def="spherical",
-                                                                               radius=.1, plot_hist=False, 
-                                                                               figure_file=figure_folder / 'neigh_hist_scale0.png')
-    t1 = time.time()
-    print('compute PCA took', t1-time0, 'seconds')
+    # # select random training set and testing set
+    rd_ind = np.random.choice(cloud.shape[0], 10, replace=False)
+    training_points = cloud[rd_ind]
+    # time0 = time.time()
+    # query_neighbor_indices, all_eigenvalues, all_eigenvectors = compute_local_PCA(training_points, cloud, 
+    #                                                                            neighborhood_def="spherical",
+    #                                                                            radius=.1, plot_hist=False, 
+    #                                                                            figure_file=figure_folder / 'neigh_hist_scale0.png')
+    # t1 = time.time()
+    # print('compute PCA took', t1-time0, 'seconds')
     
-    t0 = time.time()
-    features = compute_Thomas_features(cloud, training_points, query_neighbor_indices, all_eigenvalues, all_eigenvectors)
-    t1 = time.time()
-    print('compute Thomas features took', t1-t0, 'seconds')
-    print('moment_feature', features.shape)
-    print(np.min(features), np.max(features[:-1]))
+    # t0 = time.time()
+    # features = compute_Thomas_features(cloud, training_points, query_neighbor_indices, all_eigenvalues, all_eigenvectors)
+    # t1 = time.time()
+    # print('compute Thomas features took', t1-t0, 'seconds')
+    # print(' feature', features.shape)
+    # print(np.min(features), np.max(features[:-1]))
+    # print('cloud shape', cloud.shape)
     # t0 = time.time()
     # subsampled_cloud = grid_subsampling(cloud, voxel_size=1)
     # t1 = time.time()
     # print(f'Subsampling cloud of shape {cloud.shape} took {t1-t0:.3f} seconds.')
     # print(subsampled_cloud.shape)
 
+    t0 = time.time()
+    features = extract_multiscale_features(training_points,
+                                           cloud, 
+                                           r0=.1,
+                                           nb_scales=2, 
+                                           ratio_radius=2., 
+                                           rho=5, 
+                                           neighborhood_def="spherical")
+    t1 = time.time()
+    print('compute multiscale features took', t1-t0, 'seconds')
+    print('features', features.shape)
+    print('feature', features.nonzero())
+
+    # save features
+    with open(root_folder / '__data' / 'Cassette_features.pkl', 'wb') as f:
+        pickle.dump(features, f)
+        
     # arr = np.array([[1, 2, 3, 2, 1]])
     # unique, inverse, counts = np.unique(arr, return_inverse=True, return_counts=True, axis=1)
     # print('unique')

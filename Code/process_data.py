@@ -7,7 +7,8 @@ from pathlib import Path
 
 root_folder = Path(__file__).parent.parent
 data_folder = root_folder / '__data'
-cloud_path = data_folder / 'Cassette_GT.ply'
+raw_cloud_path = data_folder / 'Cassette_GT.ply'
+cloud_path = data_folder / 'Cassette_Cloud_forClassification.ply'
 
 label_names = {0: 'Unclassified',
                1: 'Ground',
@@ -37,7 +38,7 @@ if __name__ == '__main__':
     #     arr[np.isin(arr_v, dict[key])] = key
     # print(arr)
 
-    cloud_ply = read_ply(cloud_path) 
+    cloud_ply = read_ply(raw_cloud_path) 
     cloud_class_id = cloud_ply['class']
     print('class', cloud_class_id.shape)
 
