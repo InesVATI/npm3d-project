@@ -29,6 +29,24 @@ Classical definition of local point neighborhoods are spherical, k-nearest neigh
 \section{First Implementation results}
 My code is available on \url{https://github.com/InesVATI/npm3d-project}.
 
+For now, I am working on the Paris-rue-Cassette dataset\footnote{\url{http://data.ign.fr/benchmarks/UrbanAnalysis/}} (12 millions points). The ground truth raw contained a large number of classes. I had to parse an XML file to group together some label classes to fairly compare the results with those obtained in the articles. For this dataset, the number of points for each classes is given in the table \ref{tab:classes}. The classes are higly unbalanced.
+
+\begin{table}[H]
+    \centering
+    \begin{tabular}{|c|c|c|}
+        Class name & Label & Number of points \\
+        Ground & 1 & 4229639\\ 
+        Building & 2 & 7027016 \\ 
+        Traffic Signs & 3 & 1355\\ 
+        Pedestrian & 4 & 23999\\ 
+        Cars & 5 & 368271\\ 
+        Vegetation & 6 & 212131\\ 
+        Motorcycles & 7 & 38330\\ 
+    \end{tabular}
+    \caption{Number of points for each class for the Paris-rue-Cassette dataset. The label 0 is for the remaining unclassified points.}
+    \label{tab:classes}
+\end{table}
+
 \section{Perspectives}
 
 \textbf{Improvement proposals. }
