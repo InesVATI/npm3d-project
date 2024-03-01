@@ -1,0 +1,37 @@
+\documentclass[a4paper, 11pt]{article}
+\usepackage{theme}
+\usepackage{shortcuts}
+\addbibresource{ref.bib}
+
+\title{Starting project report : Semantic Classification of 3D point clouds with multiscale spherical neighborhoods}
+\author[1, 2]{Ines VATI}
+\affil[1]{École des Ponts ParisTech, Champs-sur-Marne, France}
+\affil[2]{MVA, ENS Paris-Saclay, Cachan, France}
+\affil[1, 2]{Email \email{ines.vati@eleves.enpc.fr}}
+
+
+\date{29 FEB 2024}
+
+\begin{document}
+\maketitle
+% \begin{abstract}
+    
+% \end{abstract}
+\textbf{Keywords. } 3D point clouds, semantic classification, multiscale, spherical neighborhoods, Random Forest
+
+\section{Article summary}
+The goal of the studied article \cite{thomas_semantic_2018} is to classify each point of a 3D point clouds using a innovative approach to design features which will be employ by a random forest classifier. 
+The features are computed using a new definition of multiscale neighborhoods using spherical neighborhoods and proportional subsampling. 
+Classical definition of local point neighborhoods are spherical, k-nearest neighbors (KNN) neighborhoods, and also cylindrical neighborhoods. The inconvenience of these approaches is that it requires to determine the scale of the neighborhood.
+
+\textbf{Main contributions. } The author leverage a multiscale approach that has been proven to be more accurate. Their features computing with multiscale spherical neighborhoods are more effective than state of the art features and scales well to bigger / large scale datasets. Their method keeps the features undistorted while ensuring sufficient density at each scale.
+
+\section{First Implementation results}
+My code is available on \url{https://github.com/InesVATI/npm3d-project}.
+
+\section{Perspectives}
+
+\textbf{Improvement proposals. }
+
+\printbibliography
+\end{document}

@@ -1,5 +1,6 @@
 \usepackage[breakable]{tcolorbox}
 % \usepackage{parskip} % Stop auto-indenting (to mimic markdown behaviour)
+\usepackage{authblk} %add affiliations and multiple authors
 
 \usepackage{iftex}
 \ifPDFTeX
@@ -12,7 +13,7 @@
 
 \usepackage{float}
 % \floatplacement{figure}{H} % forces figures to be placed at the correct location
-% \usepackage{xcolor} % Allow colors to be defined
+\usepackage{xcolor} % Allow colors to be defined
 % \usepackage{enumerate} % Needed for markdown enumerations to work
 % \usepackage{geometry} % Used to adjust the document margins
 % \usepackage{amsmath} % Equations
@@ -86,4 +87,4 @@
 \newcommand{\email}[1]{\href{mailto:#1}{#1}}
 
 % BIBLIO
-% \usepackage[style=chem-angew]{biblatex}
+\usepackage[style=chem-angew]{biblatex}
