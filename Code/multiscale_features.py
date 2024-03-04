@@ -5,6 +5,7 @@ from Code.process_data import get_dataset
 from Code.utils import grid_subsampling
 from typing import Optional, Tuple, Literal
 import time 
+from tqdm import tqdm
 import pickle
 
 from pathlib import Path
@@ -118,7 +119,9 @@ def compute_Thomas_features(cloud: np.ndarray, query_points: np.ndarray,
     """
     eps = 1e-8
     sum_eigenvalues = all_eigenvalues.sum(axis=1)
-    omnivariance = np.prod(all_eigenvalues, axis=1)**(1/3)
+    assert np.all(all_eigenvalues > -10**(-4)), f"All eigenvalues N={len(query_points)} should be positive How much >-10^-4? {np.sum(all_eigenvalues > -10**(-4))} "
+    prod_eigenvalues = np.prod(all_eigenvalues, axis=1)
+    omnivariance = np.sign(prod_eigenvalues) * np.abs(prod_eigenvalues)**(1/3) #np.prod(all_eigenvalues, axis=1)**(1/3) # 
     eigenentropy = -np.sum(all_eigenvalues * np.log(all_eigenvalues + eps), axis=1)
     linearity = 1 - all_eigenvalues[:, 1] / (all_eigenvalues[:, 2] + eps)
     planarity = (all_eigenvalues[:, 1] - all_eigenvalues[:, 0]) / (all_eigenvalues[:, 2] + eps)
@@ -192,7 +195,7 @@ def extract_multiscale_features(query_points: np.ndarray,
             # original_query_pts_not_visited = np.repeat(True, query_points.shape[0])
             new_query_points = np.empty((0, 3), dtype=query_points.dtype)
             last_seen = 0
-            for j in range(len(non_empty_voxel_id)):
+            for j in tqdm(range(len(non_empty_voxel_id)), desc="Subsampling cloud", total=len(non_empty_voxel_id)):
                 voxels = cloud[indices_in_voxels[last_seen : last_seen + nb_pt_in_voxel_id[j]]]
                 subsampled_cloud[j] = voxels.mean(axis=0)
                 last_seen += nb_pt_in_voxel_id[j]
