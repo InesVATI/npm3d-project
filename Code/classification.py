@@ -1,129 +1,94 @@
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, jaccard_score
-from Code.ply import read_ply
-from Code.multiscale_features import extract_multiscale_features
+from sklearn.metrics import jaccard_score, accuracy_score
+from pathlib import Path
+import pickle
 import numpy as np
 import time
-from os import listdir
-from os.path import join
 
-class MiniParisLilleDataset:
-    def __init__(self, num_per_class=500, nb_scales:int=2) -> None:
-        self.num_per_class = num_per_class
-        self.r0 = .8
-        self.num_scales = nb_scales
-        self.ratio_radius = 2
-        self.num_geom_feats = 18
-        self.rho = 5
-
-        label_names = {0: 'Unclassified',
-                            1: 'Ground',
-                            2: 'Building',
-                            3: 'Poles',
-                            4: 'Pedestrians',
-                            5: 'Cars',
-                            6: 'Vegetation'}
-        self.labels_id = label_names.keys()
-
-
-    def extract_train_val_features(self, path):
-        ply__files = [f for f in listdir(path) if f.endswith('.ply')]
-        train_features = np.empty((0, self.num_scales * self.num_geom_feats))
-        train_labels = np.empty((0,))
-        val_features = np.empty((0, self.num_scales * self.num_geom_feats))
-        val_labels = np.empty((0,))
-
-        # loop over training clouds
-        for i, file in enumerate(ply__files):
-            # read the cloud
-            cloud_ply = read_ply(join(path, file))
-            cloud = np.vstack((cloud_ply['x'], cloud_ply['y'], cloud_ply['z'])).T
-            labels = cloud_ply['class']
-            training_inds = np.empty(0, dtype=np.int32)
-            val_inds = np.empty(0, dtype=np.int32)
-
-            for label in self.labels_id:
-                if label == 0:
-                    continue
-
-                label_inds = np.where(labels == label)[0]
-                # if not enough points choose 95% for training and 5% for validation
-                if len(label_inds) <= self.num_per_class:
-                    random_choice = np.random.choice(len(label_inds), int(len(label_inds) * .95), replace=False)
-                else:
-                    random_choice = np.random.choice(len(label_inds), self.num_per_class, replace=False)
-
-                training_inds = np.hstack((training_inds, label_inds[random_choice]))
-                leftover_ind = np.delete(label_inds, random_choice)
-                if len(leftover_ind) > 100:
-                    val_inds = np.hstack((val_inds, leftover_ind[:100]))
-                else:
-                    val_inds = np.hstack((val_inds, leftover_ind))
+benchmark_dict0 = {
+    'DEFAULT' : {'Ground' : [],
+                 'Building' : [],
+                 'Traffic Signs' : [],
+                 'Pedestrians' : [],
+                 'Cars' : [],
+                 'Vegetation' : [],
+                 'Motorcycles' : [],
+                 "Weighted IoU" : [],
+                 "Accuracy" : []},
+    'W_HEIGHT_FEAT' : {'Ground' : [],
+                       'Building' : [],
+                       'Traffic Signs' : [],
+                       'Pedestrians' : [],
+                       'Cars' : [],
+                       'Vegetation' : [],
+                       'Motorcycles' : [],
+                       'Weighted IoU' : [],
+                       'Accuracy' : []
+                    },
+    'NO_MULTI_SCALE' : {'Ground' : [],
+                        'Building' : [],
+                        'Traffic Signs' : [],
+                        'Pedestrians' : [],
+                        'Cars' : [],
+                        'Vegetation' : [],
+                        'Motorcycles' : [],
+                        'Weighted IoU' : [],
+                        'Accuracy' : []
+                        },  
+    'KNN_NEIGH_DEF' : {'Ground' : [],
+                       'Building' : [],
+                       'Traffic Signs' : [],
+                       'Pedestrians' : [],
+                        'Cars' : [],
+                        'Vegetation' : [],
+                        'Motorcycles' : [],
+                        'Weighted IoU' : [],
+                        'Accuracy' : []
+                        }, 
+}
 
 
-            # extract features
-            all_query_inds = np.hstack((training_inds, val_inds))
-            all_features = extract_multiscale_features(cloud[all_query_inds, :], 
-                                                       cloud,
-                                                       r0=self.r0,
-                                                       nb_scales=self.num_scales,
-                                                       ratio_radius=self.ratio_radius,
-                                                       rho=self.rho,
-                                                       )
-            
-            # Concatenate labels 
-            train_features = np.vstack((train_features, all_features[:len(training_inds), :]))
-            val_features = np.vstack((val_features, all_features[len(training_inds):, :]))
-            
-            train_labels = np.hstack((train_labels, labels[training_inds]))
-            val_labels = np.hstack((val_labels, labels[val_inds]))
+def repeat_method(dataset,
+                  classifier,
+                  method: str,
+                  save_results_file: str,
+                  nb_repeats: int = 10):
+    root_folder = Path(__file__).parent.parent
+    save_results_path = root_folder / '__results' / save_results_file
+    if save_results_file.exists():
+        
+        with open(save_results_path, 'rb') as f:
+            benchmark_dict = pickle.load(f)
+    else:
+        benchmark_dict = benchmark_dict0
 
-        return train_features, train_labels, val_features, val_labels
-    
+    metrics_stats = np.zeros((nb_repeats, len(benchmark_dict['DEFAULT'])))
+    for i in range(nb_repeats):
+        # randomly choose training points
+        print('----- Randomly choose training points -----')
+        t0 = time.time()
+        training_features, training_labels, val_features, val_labels = dataset.get_training_data()
+        t1 = time.time()
+        print(f"Time to get random training points: {t1-t0} seconds")
 
+        # perform classification
+        print('----- Classifier fitting -----')
+        classifier.fit(training_features, training_labels)
 
+        print('----- Validation -----')
 
-if __name__ == "__main__":
-    data_path = '__data/training'
-    dataset = MiniParisLilleDataset(num_per_class=500, nb_scales=2)
-    
-    print('Extracting features...')
-    t0 = time.time()
-    train_features, train_labels, val_features, val_labels = dataset.extract_train_val_features(data_path)
-    t1 = time.time()
-    print('Done in {:.1f}s'.format(t1 - t0))
+        val_pred = classifier.predict(val_features)
+        class_score = jaccard_score(val_labels, val_pred, average=None)
+        metrics_stats[i] = np.hstack( (class_score,
+                                       jaccard_score(val_labels, val_pred, average='weighted')))
 
-    print(f'train feat {train_features.shape} train labels {train_labels.shape} val feat {val_features.shape} val labels {val_labels.shape}')
+        
+    for i, key in enumerate(benchmark_dict[method].keys()):
+        benchmark_dict[method][key] = [metrics_stats[:, i].mean(), metrics_stats[:, i].std()]
 
-    print('Training the classifier...')
-    t0 = time.time()
-    clf = RandomForestClassifier()
+    # save new results
+    with open(save_results_path, 'wb') as f:
+        pickle.dump(benchmark_dict, f)
 
-    # scale the features ?
-    clf.fit(train_features, train_labels)
-    t1 = time.time()
-    print('Done in {:.1f}s'.format(t1 - t0))
-
-
-    # print('Check the accuracy on train set...')
-    # train_pred = clf.predict(train_features[:20])
-    # print(f'train pred {train_pred.shape}')
-    # print('Accuracy: {:.1f}%'.format(100 * accuracy_score(train_labels[:20], train_pred)))
-    # print('Jaccard index: {:.1f}%'.format(100 * jaccard_score(train_labels[:20], train_pred, average='micro'))) # https://scikit-learn.org/stable/modules/generated/sklearn.metrics.jaccard_score.html
-
-
-    print('Validation...')
-    t0 = time.time()
-    val_pred = clf.predict(val_features)
-    t1 = time.time()
-    print('Done in {:.1f}s'.format(t1 - t0))
-    print('Accuracy: {:.1f}%'.format(100 * accuracy_score(val_labels, val_pred)))
-    print('Jaccard index: {:.1f}%'.format(100 * jaccard_score(val_labels, val_pred, average='micro'))) 
-
-
-
-            
-
-
+    print(benchmark_dict)
 
 
