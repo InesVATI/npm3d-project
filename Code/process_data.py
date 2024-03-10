@@ -14,16 +14,16 @@ label_names = {0: 'Unclassified',
                1: 'Ground',
                2: 'Building', # Facade
                3: 'Traffic Signs',
-                4: 'Pedestrians',
-                5: 'Cars',
-                6: 'Vegetation',
-                7: 'Motorcycles',}
+               4: 'Pedestrians',
+               5: 'Cars',
+               6: 'Vegetation',
+               7: 'Motorcycles',}
 
-def get_dataset(filename=cloud_path):
+def get_CassetteDataset(filename=cloud_path):
     cloud_ply = read_ply(filename)
     cloud = np.vstack((cloud_ply['x'], cloud_ply['y'], cloud_ply['z'])).T
 
-    # label : to change ??
+  
     label = cloud_ply['class']
 
     return cloud, label
