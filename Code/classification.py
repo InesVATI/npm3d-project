@@ -45,7 +45,7 @@ benchmark_dict0 = {
 def perform_classification(dataset, classifier):
     print('----- Randomly choose training points -----')
     t0 = time.time()
-    training_features, training_labels, val_features, val_labels = dataset.get_training_data()
+    training_features, training_labels, val_features, val_labels = dataset.get_training_val_data()
     t1 = time.time()
     print(f"Time to get random training points: {t1-t0} seconds")
 

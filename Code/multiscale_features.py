@@ -2,7 +2,6 @@ import numpy as np
 from numba import jit, njit
 import matplotlib.pyplot as plt 
 from sklearn.neighbors import KDTree
-# from Code.utils import grid_subsampling
 from multiprocessing import Pool
 from typing import Optional, Tuple, Literal
 from functools import partial
