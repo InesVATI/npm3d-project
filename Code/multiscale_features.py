@@ -117,17 +117,17 @@ def compute_moment_features(cloud: np.ndarray,
 
     return np.concatenate((absolute_moments, vertical_moments), axis=1)
 
-@jit
-def compute_height_features(cloud: np.ndarray, query_points, query_neighbor_indices: np.ndarray, neighborhood_def : Literal["spherical", "knn"] = "spherical"):
+
+def compute_height_features(cloud: np.ndarray, query_points:np.ndarray, query_neighbor_indices: np.ndarray, neighborhood_def : Literal["spherical", "knn"] = "spherical"):
     """ additional feature from Hackel et al."""
     if neighborhood_def == "spherical":
         height_features = np.zeros((query_points.shape[0], 3))
         for i, point in enumerate(query_points):
             z_max, z_min = np.max(cloud[query_neighbor_indices[i], 2]), np.min(cloud[query_neighbor_indices[i], 2])
-            height_features[i] = np.array( z_max - z_min, # vertical range
-                                          point[2], z_min, # height below
+            height_features[i] = np.array([ z_max - z_min, # vertical range
+                                          point[2] - z_min, # height below
                                           z_max - point[2] # height above
-                                          )
+                                          ])
     elif neighborhood_def == "knn":
         z_max_all = np.max(cloud[query_neighbor_indices, 2], axis=-1)
         z_min_all = np.min(cloud[query_neighbor_indices, 2], axis=-1) # (N, k)
@@ -221,7 +221,8 @@ def extract_multiscale_features(query_points: np.ndarray,
     Returns:
         features: (N, n*nb_scales)-array, where n is the number of features at each scale (here, 18)
     """
-    features = np.zeros((query_points.shape[0], 18*nb_scales))
+    n_feats = 21 if add_height_feats else 18
+    features = np.zeros((query_points.shape[0], n_feats*nb_scales))
     pos_cloud = cloud - np.min(cloud, axis=0)
 
     for i in range(nb_scales):
@@ -229,7 +230,7 @@ def extract_multiscale_features(query_points: np.ndarray,
 
         if i == 0: # compute features on the original cloud
     
-            features[:, i*18:(i+1)*18] = compute_Thomas_features(cloud,
+            features[:, i*n_feats:(i+1)*n_feats] = compute_Thomas_features(cloud,
                                                                  query_points,
                                                                  add_height_feats=add_height_feats,
                                                                  neighborhood_def=neighborhood_def,
@@ -266,10 +267,10 @@ def extract_multiscale_features(query_points: np.ndarray,
                                             add_height_feats=add_height_feats,
                                             neighborhood_def=neighborhood_def,
                                             radius=radius,
-                                            k=k) # nb_new_query_points x 18
+                                            k=k) # nb_new_query_points x n_feats
             
             for j, idx in enumerate(indices_original_query_pts):
-                features[idx, i*18:(i+1)*18] = feats[j]
+                features[idx, i*n_feats:(i+1)*n_feats] = feats[j]
                 
     return features
     

@@ -5,9 +5,10 @@ from pathlib import Path
 from utils import grid_subsampling
 from process_data import get_CassetteDataset
 from multiscale_features import extract_multiscale_features
-from classification import repeat_method
+from classification import repeat_method, perform_classification
 from datasets import CassetteDataset
 from sklearn.ensemble import RandomForestClassifier, HistGradientBoostingClassifier
+from sklearn.metrics import jaccard_score
 import pickle
 
 if __name__ == '__main__':
@@ -44,22 +45,46 @@ if __name__ == '__main__':
         with open(root_folder / '__data' / 'Cassette_labels.pkl', 'wb') as f:
             pickle.dump(labels_training, f)
     
-    if True :
-        method = 'KNN_NEIGH_DEF'
+    if False :
+        method = 'DEFAULT'
         dataset = CassetteDataset(num_per_class=1000,
                                   data_folder=root_folder / '__data',
                                   method=method)
-        classifier = RandomForestClassifier(n_estimators=150,
-                                            criterion="gini",
-                                            max_depth=30) # class_weight="balanced"
-        # classifier = HistGradientBoostingClassifier(max_iter=100, 
-        #                                             max_depth=30,
-        #                                             class_weight="balanced") 
-        repeat_method(dataset=dataset,
-                      classifier=classifier,
-                      method=method, 
-                      nb_repeats=10,
-                      save_results_file=root_folder / '__results' / 'Cassette_benchmark_results.pkl'
-                      )
+        # classifier = RandomForestClassifier(n_estimators=150,
+        #                                     criterion="gini",
+        #                                     class_weight="balanced"
+        #                                     ) 
+        classifier = HistGradientBoostingClassifier(max_iter=150, 
+                                                    class_weight="balanced") 
+        val_labels, val_pred = perform_classification(dataset, classifier)
+        class_score = jaccard_score(val_labels, val_pred, average=None)
+        print("method", method)
+        print('class_score', class_score)
+        print('jaccard_score', jaccard_score(val_labels, val_pred, average='weighted'))
+
+    if True :
+        for method in ['DEFAULT', 'KNN_NEIGH_DEF', 'NO_MULTI_SCALE'] :
+        # method = 'KNN_NEIGH_DEF'
+            dataset = CassetteDataset(num_per_class=1000,
+                                    data_folder=root_folder / '__data',
+                                    method=method)
+            # classifier = RandomForestClassifier(n_estimators=150,
+            #                                     criterion="gini",
+            #                                     class_weight="balanced"
+            #                                     ) 
+            classifier = HistGradientBoostingClassifier(max_iter=150, 
+                                                        class_weight="balanced") 
+            repeat_method(dataset=dataset,
+                        classifier=classifier,
+                        method=method, 
+                        nb_repeats=10,
+                        save_results_file=root_folder / '__results' / 'Cassette_benchmarkBoosting_results.pkl'
+                        )
+            
+    if False:
+        with open(root_folder / '__results' / 'Cassette_benchmarkBoosting_results.pkl', 'rb') as f:
+            results = pickle.load(f)
+            print('results', results)
+
 
     

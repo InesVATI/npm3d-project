@@ -12,8 +12,7 @@ benchmark_dict0 = {
                  'Cars' : [],
                  'Vegetation' : [],
                  'Motorcycles' : [],
-                 "Weighted IoU" : [],
-                 "Accuracy" : []},
+                 "Weighted IoU" : []},
     'W_HEIGHT_FEAT' : {'Ground' : [],
                        'Building' : [],
                        'Traffic Signs' : [],
@@ -21,8 +20,7 @@ benchmark_dict0 = {
                        'Cars' : [],
                        'Vegetation' : [],
                        'Motorcycles' : [],
-                       'Weighted IoU' : [],
-                       'Accuracy' : []
+                       'Weighted IoU' : []
                     },
     'NO_MULTI_SCALE' : {'Ground' : [],
                         'Building' : [],
@@ -31,8 +29,7 @@ benchmark_dict0 = {
                         'Cars' : [],
                         'Vegetation' : [],
                         'Motorcycles' : [],
-                        'Weighted IoU' : [],
-                        'Accuracy' : []
+                        'Weighted IoU' : []
                         },  
     'KNN_NEIGH_DEF' : {'Ground' : [],
                        'Building' : [],
@@ -41,12 +38,24 @@ benchmark_dict0 = {
                         'Cars' : [],
                         'Vegetation' : [],
                         'Motorcycles' : [],
-                        'Weighted IoU' : [],
-                        'Accuracy' : []
+                        'Weighted IoU' : []
                         }, 
 }
 
+def perform_classification(dataset, classifier):
+    print('----- Randomly choose training points -----')
+    t0 = time.time()
+    training_features, training_labels, val_features, val_labels = dataset.get_training_data()
+    t1 = time.time()
+    print(f"Time to get random training points: {t1-t0} seconds")
 
+    # perform classification
+    classifier.fit(training_features, training_labels)
+
+    val_pred = classifier.predict(val_features)
+    
+    return val_labels, val_pred
+    
 def repeat_method(dataset,
                   classifier,
                   method: str,
@@ -63,24 +72,10 @@ def repeat_method(dataset,
 
     metrics_stats = np.zeros((nb_repeats, len(benchmark_dict['DEFAULT'])))
     for i in range(nb_repeats):
-        # randomly choose training points
-        print('----- Randomly choose training points -----')
-        t0 = time.time()
-        training_features, training_labels, val_features, val_labels = dataset.get_training_data()
-        t1 = time.time()
-        print(f"Time to get random training points: {t1-t0} seconds")
-
-        # perform classification
-        print('----- Classifier fitting -----')
-        classifier.fit(training_features, training_labels)
-
-        print('----- Validation -----')
-
-        val_pred = classifier.predict(val_features)
+        val_labels, val_pred = perform_classification(dataset, classifier)
         class_score = jaccard_score(val_labels, val_pred, average=None)
         metrics_stats[i] = np.hstack( (class_score,
                                        jaccard_score(val_labels, val_pred, average='weighted')))
-
         
     for i, key in enumerate(benchmark_dict[method].keys()):
         benchmark_dict[method][key] = [metrics_stats[:, i].mean(), metrics_stats[:, i].std()]

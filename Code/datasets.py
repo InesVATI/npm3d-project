@@ -1,22 +1,21 @@
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, jaccard_score
-from Code.ply import read_ply
-from Code.multiscale_features import extract_multiscale_features
+from ply import read_ply
+from multiscale_features import extract_multiscale_features
 import numpy as np
 import pickle
 import time
-from os import listdir
-from os.path import join, exists
+import os
 import configparser
 
 class CassetteDataset:
     def __init__(self, num_per_class:int=1000,
-                 data_folder = '__data',
+                 data_folder : str = '__data',
                  method:str='DEFAULT') -> None:
         self.data_folder = data_folder
         self.num_per_class = num_per_class
         config = configparser.ConfigParser()
-        config.read('Code/cassette_config.ini')
+        config.read(f'{os.path.dirname(data_folder)}/Code/cassette_config.ini')
         self.method_config = config[method]
 
         self.label_names = {0: 'Unclassified',
@@ -55,7 +54,7 @@ class CassetteDataset:
     def _extract_features(self):
         """ Choose random points in point cloud from each class and extract features """
         
-        cloud_path = self.data_folder / 'Cassette_Cloud_forClassification_subsampled.ply'
+        cloud_path = f'{self.data_folder}/Cassette_Cloud_forClassification_subsampled.ply'
         cloud_ply = read_ply(cloud_path)
         cloud = np.vstack((cloud_ply['x'], cloud_ply['y'], cloud_ply['z'])).T
         labels = cloud_ply['class']
@@ -125,7 +124,7 @@ class MiniParisLilleDataset:
 
 
     def extract_train_val_features(self, path):
-        ply__files = [f for f in listdir(path) if f.endswith('.ply')]
+        ply__files = [f for f in os.listdir(path) if f.endswith('.ply')]
         train_features = np.empty((0, self.num_scales * self.num_geom_feats))
         train_labels = np.empty((0,))
         val_features = np.empty((0, self.num_scales * self.num_geom_feats))
@@ -134,7 +133,7 @@ class MiniParisLilleDataset:
         # loop over training clouds
         for i, file in enumerate(ply__files):
             # read the cloud
-            cloud_ply = read_ply(join(path, file))
+            cloud_ply = read_ply(os.path.join(path, file))
             cloud = np.vstack((cloud_ply['x'], cloud_ply['y'], cloud_ply['z'])).T
             labels = cloud_ply['class']
             training_inds = np.empty(0, dtype=np.int32)
@@ -179,34 +178,34 @@ class MiniParisLilleDataset:
                 break
 
         # save features and labels
-        train_features_file = join(path, 'train_features.pkl')
-        val_features_file = join(path, 'val_features.pkl')
+        train_features_file = os.path.join(path, 'train_features.pkl')
+        val_features_file = os.path.join(path, 'val_features.pkl')
         with open(train_features_file, 'wb') as f:
             pickle.dump(train_features, f)
         with open(val_features_file, 'wb') as f:
             pickle.dump(val_features, f)
-        train_labels_file = join(path, 'train_labels.npy')
+        train_labels_file = os.path.join(path, 'train_labels.npy')
         np.save(train_labels_file, train_labels)
-        val_labels_file = join(path, 'val_labels.npy')
+        val_labels_file = os.path.join(path, 'val_labels.npy')
         np.save(val_labels_file, val_labels)
         
 
         return train_features, train_labels, val_features, val_labels
     
     def extract_test_features(self, path):
-        ply__files = [f for f in listdir(path) if f.endswith('.ply')]
+        ply__files = [f for f in os.listdir(path) if f.endswith('.ply')]
         
         test_features = np.empty((0, self.num_scales * self.num_geom_feats))
 
         for file in ply__files:
 
-            cloud_ply = read_ply(join(path, file))
+            cloud_ply = read_ply(os.path.join(path, file))
             cloud = np.vstack((cloud_ply['x'], cloud_ply['y'], cloud_ply['z'])).T
 
             feature_file = file[:-4] + '_features.npy'
-            feature_file = join(path, feature_file)
+            feature_file = os.path.join(path, feature_file)
 
-            if exists(feature_file):
+            if os.path.exists(feature_file):
                 features = np.load(feature_file)
 
             else:
