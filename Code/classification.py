@@ -70,7 +70,7 @@ def repeat_method(dataset,
     else:
         benchmark_dict = benchmark_dict0
 
-    metrics_stats = np.zeros((nb_repeats, len(benchmark_dict['DEFAULT'])))
+    metrics_stats = np.zeros((nb_repeats, len(benchmark_dict[method])))
     for i in range(nb_repeats):
         val_labels, val_pred = perform_classification(dataset, classifier)
         class_score = jaccard_score(val_labels, val_pred, average=None)

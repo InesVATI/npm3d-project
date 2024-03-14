@@ -26,7 +26,7 @@ def create_config_file(data : Literal['Cassette', 'Mini'] = 'Cassette'):
     elif data.lower() == 'mini':
         config['DEFAULT'] = {
             'r0' : '0.8',
-            'nb_scales': '2',
+            'nb_scales': '3',
             'ratio_radius': '2',
             'rho': '5',
             'neighborhood_def':'spherical',
@@ -116,13 +116,13 @@ def get_table_benchmark(benchmark_dict : dict,
     for key in benchmark_dict.keys():
         values = benchmark_dict[key]
         table.add_row([key.replace('_', ' '), f"${values['Ground'][0]*100:.2f} \pm {values['Ground'][1]*100:.2f}$",
-                       f"${values['Building'][0]:.2f} \pm {values['Building'][1]:.2f}$",
-                       f"${values['Traffic Signs'][0]:.2f} \pm {values['Traffic Signs'][1]:.2f}$",
-                       f"${values['Pedestrians'][0]:.2f} \pm {values['Pedestrians'][1]:.2f}$",
-                       f"${values['Cars'][0]:.2f} \pm {values['Cars'][1]:.2f}$",
-                       f"${values['Vegetation'][0]:.2f} \pm {values['Vegetation'][1]:.2f}$",
-                       f"${values['Motorcycles'][0]:.2f} \pm {values['Motorcycles'][1]:.2f}$",
-                       f"${values['Weighted IoU'][0]:.2f} \pm {values['Weighted IoU'][1]:.2f}$"
+                       f"${values['Building'][0]*100:.2f} \pm {values['Building'][1]*100:.2f}$",
+                       f"${values['Traffic Signs'][0]*100:.2f} \pm {values['Traffic Signs'][1]*100:.2f}$",
+                       f"${values['Pedestrians'][0]*100:.2f} \pm {values['Pedestrians'][1]*100:.2f}$",
+                       f"${values['Cars'][0]*100:.2f} \pm {values['Cars'][1]*100:.2f}$",
+                       f"${values['Vegetation'][0]*100:.2f} \pm {values['Vegetation'][1]*100:.2f}$",
+                       f"${values['Motorcycles'][0]*100:.2f} \pm {values['Motorcycles'][1]*100:.2f}$",
+                       f"${values['Weighted IoU'][0]*100:.2f} \pm {values['Weighted IoU'][1]*100:.2f}$"
                        ])
     
     print(latextable.draw_latex(
@@ -132,7 +132,7 @@ def get_table_benchmark(benchmark_dict : dict,
     ))
 
 if __name__ == '__main__':
-    # create_config_file(data='Mini')
+    create_config_file(data='Mini')
 
     # config = configparser.ConfigParser()
     # config.read('Code/cassette_config.ini')
@@ -150,17 +150,17 @@ if __name__ == '__main__':
 
     # table_label_size(labels, label_names, caption_table='Class size in Cassette subsampled cloud')
 
-    result_folder = os.getcwd() + '/__results'
-    print('result_folder', result_folder)
-    with open(f'{result_folder}/Cassette_benchmarkRF_results.pkl', 'rb') as f:
-        benchmark_dict_RF = pickle.load(f)
+    # result_folder = os.getcwd() + '/__results'
+    # print('result_folder', result_folder)
+    # with open(f'{result_folder}/Cassette_benchmarkRF_results.pkl', 'rb') as f:
+    #     benchmark_dict_RF = pickle.load(f)
 
-    get_table_benchmark(benchmark_dict_RF, caption_table='Benchmark results with Random Forest classifier', label_table='tab:benchmark_RF')
+    # get_table_benchmark(benchmark_dict_RF, caption_table='Benchmark results with Random Forest classifier', label_table='tab:benchmark_RF')
 
-    with open(f'{result_folder}/Cassette_benchmarkBoosting_results.pkl', 'rb') as f:
-        benchmark_dict_Boosting = pickle.load(f)
+    # with open(f'{result_folder}/Cassette_benchmarkBoosting_results.pkl', 'rb') as f:
+    #     benchmark_dict_Boosting = pickle.load(f)
 
-    get_table_benchmark(benchmark_dict_Boosting, caption_table='Benchmark results with HBG classifier', label_table='tab:benchmark_Boosting')
+    # get_table_benchmark(benchmark_dict_Boosting, caption_table='Benchmark results with HBG classifier', label_table='tab:benchmark_Boosting')
 
 
    

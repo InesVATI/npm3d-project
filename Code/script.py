@@ -86,27 +86,47 @@ if __name__ == '__main__':
             print('results', results)
     if True : # train on MiniLille and predict on MiniParis
         data_path = root_folder/'__data'
-        # dataset = MiniParisLilleDataset(num_per_class=5000,
-        #                                 data_folder=data_path,
-        #                                 method='DEFAULT')
+        dataset = MiniParisLilleDataset(num_per_class=100000,
+                                        data_folder=data_path,
+                                        method='DEFAULT',
+                                        num_test_samples_per_class=80000)
         
-        # t0 = time.time()
-        # training_features, training_labels = dataset.get_training_data()
-        # test_features
+        t0 = time.time()
+        training_features, training_labels, val_features, val_labels = dataset.get_training_val_data()
+        t1 = time.time()
+        print(f"Time to get random train and val points: {t1-t0} seconds")
+
 
         # # perform classification
-        # classifier = RandomForestClassifier(n_estimators=150,
-        #                                         criterion="gini",
-        #                                         class_weight="balanced"
-        #                                         ) 
-        # classifier.fit(training_features, training_labels)
-
-        # val_pred = classifier.predict(val_features)
+        t0 = time.time()
+        classifier = RandomForestClassifier(n_estimators=150,
+                                            criterion="gini",
+                                            class_weight="balanced"
+                                            ) 
+        classifier.fit(training_features, training_labels)
+        t1 = time.time()
+        print(f"Time to train classifier: {t1-t0} seconds")
+        t0 = time.time()
+        val_pred = classifier.predict(val_features)
+        t1 = time.time()
+        print(f"Time to predict labels: {t1-t0} seconds")
+        class_score = jaccard_score(val_labels, val_pred, average=None)
+        print('class_score', class_score)
+        print('weighted jaccard_score', jaccard_score(val_labels, val_pred, average='weighted'))
 
         # t0 = time.time()
         # features = dataset.extract_test_features(f'{root_folder}/__data/test')
         # t1 = time.time()
         # print('compute multiscale features on MiniParis took', t1-t0, 'seconds')
+
+    # with open(root_folder / '__data' / 'training' / 'trainLille_features.pkl', 'rb') as f:
+    #     train_features = pickle.load(f)
+    # with open(root_folder / '__data' / 'training' / 'trainLille_labels.npy', 'rb') as f:    
+    #     train_labels = np.load(f)
+
+    # print('train_features', train_features.shape)
+    # print('train_labels', train_labels.shape)
+
 
 
 
