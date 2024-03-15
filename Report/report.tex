@@ -264,13 +264,14 @@ It is noteworthy that the verticality of the smallest eigenvector $e_3$ exhibits
 
 
 
-\subsection{NPM3D dataset and generalization on an unseen dataset}\label{sec:generalization}
+\subsection{NPM3D dataset and generalization on an Unseen point clouds}\label{sec:generalization}
 
-Time to get random train and val points: 18889.814297676086 seconds
-Time to train classifier: 2955.8903341293335 seconds
-Time to predict labels: 18.66540288925171 seconds
-% class_score [0.98415226 0.97442865 0.98397794 0.98338341 0.9885436  0.96862922]
-% weighted jaccard_score 0.9788960145886185
+For this experiment, I have randomly selected 100,000 points per class from the MiniLille dataset to train the Random Forest classifier. Here, the number of scales is $S=3$, $r_0=0.8$, $\phi=2$, $\rho=5$ and I used a spherical neighborhood. To assess the generalization ability of the method, I considered points in the MiniParis point cloud with a non-zero labels. Subsequently, I predicted the labels of 34,7651 points from this dataset. The results are presented in Table \ref{tab:results_generalization}. 
+
+The classifier trained on the MiniLille dataset generalizes well to the MiniParis dataset, with a weighted IoU score of 97.89\%. This demonstrates the robustness of the proposed method and its ability to generalize to unseen datasets. 
+
+The computation of features for the test points required 4 hours, while the training of the classifier itself took 49 minutes. These processing times reflect the computational resources necessary for the feature extraction and training phases when dealing with a large number of points.
+
 
 \begin{table}[H]
     \centering
@@ -286,18 +287,19 @@ Time to predict labels: 18.66540288925171 seconds
     \hline 
     Weighted IoU & 97.89\% \\
 \end{tabular}
-\caption{IoU on the MiniParis dataset using the Random Forest classifier trained on the MiniLille dataset.}
+\caption{IoU on the MiniParis dataset using the Random Forest classifier trained on the MiniLille dataset. Here, the number of scales is $S=3$, $r_0=0.8$, $\phi=2$, $\rho=5$.}
+\label{tab:results_generalization}
 \end{table}
 
-\section{Improvement proposals}
-\subsection{Speed up attempts}
-I tried to compute the features on multiple CPU processes using \texttt{multiprocessing} package to speed for loops. Howerver, objects placed on multiprocessing queues are pickled, transferred over the queue, and then unpickled. The pickling and unpickling steps add overhead, and for large objects this overhead can be significant. This is because large objects require more data to be pickled and transferred, and the unpickling step requires reconstructing the entire object. 
+\section{Improvement proposals}\label{sec:classification}
 
-Then, I tried Numba which is a just-in-time compiler for Python that works best on code that uses NumPy arrays and functions. Computing the features of 40 points with 4 scales on the subsampled points (about 1,288,215 points) took 54 seconds. I computed and saved the features of all points, excluding the points with label 0. It took in [time ] hours. 
+One of the requirements for this project was to propose improvements to the method. I have proposed and implemented the addition of height features to the feature set. The results were discussed in section \ref{sec:compare_w/o_height}.
 
+\textbf{Speed up attempts.} I also tried to speed up the feature computation code. I computed the features on multiple CPU processes using \texttt{multiprocessing} package to speed up loops. Howerver, objects placed on multiprocessing queues are pickled, transferred over the queue, and then unpickled. The pickling and unpickling steps add overhead, and for large objects this overhead can be significant. This is because large objects require more data to be pickled and transferred, and the unpickling step requires reconstructing the entire object. 
 
-\subsection{Classification methods}\label{sec:classification}
-Random Forest classifier is usually used for semantic classification of 3D point clouds \cite{thomas_semantic_2018,hackel_fast_nodate}. Indeed, it is directly applicable to multi-class problems and has been shown to yield good results in reasonable time on large point clouds \cite{weinmann_semantic_2015,atik_machine_2021}. I use Gini index as splitting criterion.
+Then, I tried Numba which is a just-in-time compiler for Python that works best on code that uses NumPy arrays and functions. Computing the features of 40 points with 4 scales on the subsampled Paris-rue-Cassette point cloud (about 1,288,215 points) took 54 seconds. I computed and saved the features of all points, excluding the points with label 0. 
+
+\textbf{Classification methods.} Random Forest classifier is usually used for semantic classification of 3D point clouds \cite{thomas_semantic_2018,hackel_fast_nodate}. Indeed, it is directly applicable to multi-class problems and has been shown to yield good results in reasonable time on large point clouds \cite{weinmann_semantic_2015,atik_machine_2021}. I use Gini index as splitting criterion.
 
 However, other classification methods could be considered \cite{atik_machine_2021}. 
 
@@ -315,9 +317,6 @@ Moving forward, the insights gained from this project can inform the development
 \bibliographystyle{plain}
 \bibliography{ref}
 
-\appendix
-
-\section{Multiscale features computation}
 
 
 \end{document}

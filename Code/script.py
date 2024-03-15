@@ -84,7 +84,7 @@ if __name__ == '__main__':
         with open(root_folder / '__results' / 'Cassette_benchmarkBoosting_results.pkl', 'rb') as f:
             results = pickle.load(f)
             print('results', results)
-    if True : # train on MiniLille and predict on MiniParis
+    if False : # train on MiniLille and predict on MiniParis
         data_path = root_folder/'__data'
         dataset = MiniParisLilleDataset(num_per_class=100000,
                                         data_folder=data_path,
@@ -121,11 +121,15 @@ if __name__ == '__main__':
 
     # with open(root_folder / '__data' / 'training' / 'trainLille_features.pkl', 'rb') as f:
     #     train_features = pickle.load(f)
-    # with open(root_folder / '__data' / 'training' / 'trainLille_labels.npy', 'rb') as f:    
-    #     train_labels = np.load(f)
+    # with open(root_folder / '__data' / 'test' / 'MiniParis1_labels.npy', 'rb') as f:    
+    #     test_labels = np.load(f)
 
-    # print('train_features', train_features.shape)
-    # print('train_labels', train_labels.shape)
+    # for i in range(1, 7):
+    #     mask = test_labels == i
+    #     print(f'class {i} : {mask.sum()}')
+
+    # print('test_labels', test_labels.shape)
+
 
 
 
