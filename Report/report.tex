@@ -26,8 +26,8 @@
 \maketitle
 
 \begin{abstract}
-    The project consists in studying the article from Thomas et al. \cite{thomas_semantic_2018} by implementing it and proposing improvements. The goal of the studied article is to classify each point of a 3D point clouds using an innovative approach to design features which will be used to train a random forest classifier. 
-    [what i did]
+    In this work, I studied the methodology presented by Thomas et al. \cite{thomas_semantic_2018} for classifying each point within 3D point clouds using an innovative feature design approach. 
+    A series of experiments are conducted to assess the performance of the method and to compare it with other approaches ranging from neighborhood definition to classification algorithm, through the use of additional features.
     As no code were provided, the methods were implemented from scratch. The code implemented for this project is available on \url{https://github.com/InesVATI/npm3d-project}. 
 \end{abstract}
 \textbf{Keywords.} 3D point clouds, semantic classification, multiscale, spherical neighborhoods, Random Forest Classifier
@@ -100,7 +100,7 @@ Here, $\phi$ is the ratio between the radius of consecutive neighborhoods and $\
     \label{tab:height_feat}
 \end{table}
 
-\section{Experiments and results}
+\section{Experiments and results}\label{sec:experiments}
 I used two datasets to evaluate the method: the Paris-rue-Cassette dataset\footnote{\url{http://data.ign.fr/benchmarks/UrbanAnalysis/}}, a point cloud of 12 million points and the NPM3D dataset\footnote{\url{https://npm3d.fr/benchmark-for-master-course-on-3d-point-clouds}}, that groups three point clouds, including the MiniLille and MiniParis point clouds. The MiniLille dataset has 1,901,853 and 2,500,428 points and the MiniParis dataset has 4,159,318 points. 
 
 The Paris-rue-Cassette dataset serves as the basis for comparing various methods.After carefully selecting parameters for a Random Forest classifier, I applied the same classifier configuration to investigate the following:
@@ -179,8 +179,8 @@ It is worth noting that the radius of the spherical neighborhood adjusts accordi
     \begin{tabular}{cllllllll}
         Method & Ground & Building & Traffic Signs & Pedestrians & Cars & Vegetation & Motorcycles & Weighted IoU \\
         \hline
-        \cite{thomas_semantic_2018} & $81.48 \mtiny{\pm 2.95}$ & $71.21 \mtiny{\pm 8.07}$ & $90.25 \mtiny{\pm 11.21}$ & $92.81 \mtiny{\pm 2.00}$ & $47.48 \mtiny{\pm 12.85}$ & $\mathbf{82.34} \mtiny{\pm 4.68}$ & $\mathbf{97.31} \mtiny{\pm 2.27}$ & $78.87 \mtiny{\pm 4.22}$ \\
-        + height & $\mathbf{83.16} \mtiny{\pm 2.23}$ & $\mathbf{72.10} \mtiny{\pm 3.60}$ & $\mathbf{97.00} \mtiny{\pm 4.58}$ & $\mathbf{93.56} \mtiny{\pm 1.42}$ & $\mathbf{49.84} \mtiny{\pm 12.70}$ & $81.46 \mtiny{\pm 6.48}$ & $95.23 \mtiny{\pm 2.99}$ & $\mathbf{79.37} \mtiny{\pm 2.95}$ \\
+        \cite{thomas_semantic_2018} & $81.48 \mtiny{\pm 2.95}$ & $71.21 \mtiny{\pm 8.07}$ & $90.25 \mtiny{\pm 4.21}$ & $92.81 \mtiny{\pm 2.00}$ & $47.48 \mtiny{\pm 12.85}$ & $\mathbf{82.34} \mtiny{\pm 4.68}$ & $\mathbf{97.31} \mtiny{\pm 2.27}$ & $78.87 \mtiny{\pm 4.22}$ \\
+        + height & $\mathbf{83.16} \mtiny{\pm 2.23}$ & $\mathbf{72.10} \mtiny{\pm 3.60}$ & $\mathbf{97.00} \mtiny{\pm 2.58}$ & $\mathbf{93.56} \mtiny{\pm 1.42}$ & $\mathbf{49.84} \mtiny{\pm 12.70}$ & $81.46 \mtiny{\pm 6.48}$ & $95.23 \mtiny{\pm 2.99}$ & $\mathbf{79.37} \mtiny{\pm 2.95}$ \\
         - multiscale & $68.76 \mtiny{\pm 5.77}$ & $43.25 \mtiny{\pm 3.03}$ & $9.08 \mtiny{\pm 3.18}$ & $71.19 \mtiny{\pm 1.91}$ & $30.12 \mtiny{\pm 4.14}$ & $62.53 \mtiny{\pm 2.57}$ & $54.84 \mtiny{\pm 2.71}$ & $54.74 \mtiny{\pm 1.51}$ \\
         knn & $71.87 \mtiny{\pm 8.28}$ & $57.21 \mtiny{\pm 6.39}$ & $48.24 \mtiny{\pm 27.04}$ & $90.99 \mtiny{\pm 1.98}$ & $36.52 \mtiny{\pm 8.29}$ & $80.76 \mtiny{\pm 1.66}$ & $86.94 \mtiny{\pm 1.52}$ & $70.53 \mtiny{\pm 3.13}$ \\
 \end{tabular}
@@ -213,33 +213,26 @@ Spherical neighborhoods consider points within a 3D spherical region, which inhe
 \subsection{Impact of Multiscale Features on Performance}\label{sec:w/o_multiscale}
 Relying solely on the original scale consistently yields the lowest scores, as demonstrated in Tables \ref{tab:benchmark_RF} and \ref{tab:benchmark_Boosting}. This observation confirms the importance of the multiscale approach. Indeed, using a fixed scale across the scene is inadequate because most scenes contain objects of various sizes. Given the data acquisition process, dense and accurate 3D point clouds exhibiting substantial variations in point density may be expected. This underscores the necessity of considering multiple scales to effectively capture the complexities and variations present in the point cloud.
 
-
-\subsection{Comparison with Additional Features and Assessment of Feature Importance}\label{sec:compare_w/o_height}
-
-HHeight features, such as vertical range, as listed in Table \ref{tab:height_feat}, were employed in previous studies \cite{hackel_fast_nodate,mohamed_improvement_2022} for their ability to better characterize vertical and thin objects such as traffic signs or tree trunks. 
-
-In table \ref{tab:benchmark_RF}, it is observed that the IoU scores with or without these features statistically fall within an overlapping range. To further analyze the significance of each feature, their importances were investigated. 
-
-\begin{figure}
+\begin{figure}[H]
     \hspace*{-2cm}  
         \includegraphics[width=1.3\textwidth]{MDI_feature_importances_DEFAULT.png}
-        \caption{MDI feature importances with the 18 features at each scale defined in Table \ref{tab:thomas_feat}. $\mathcal{M}$ refers to the moment. }
+        \caption{MDI feature importances with the 18 features at each scale defined in Table \ref{tab:thomas_feat}. $\mathcal{M}$ refers to the moment.}
         \label{fig:MDI_default}
 \end{figure}
 
-\begin{figure}
-    \hspace*{-2cm}
-        \includegraphics[width=1.3\textwidth]{MDI_feature_importances_W_HEIGHT_FEAT.png}
-    \caption{MDI feature importances for the Paris-rue-Cassette dataset with additional height features (21 features in total).}
-    \label{fig:MDI_height}
-\end{figure}
+\subsection{Comparison with Additional Features and Assessment of Feature Importance}\label{sec:compare_w/o_height}
+
+
+Height features, such as vertical range, as listed in Table \ref{tab:height_feat}, were employed in previous studies \cite{hackel_fast_nodate,mohamed_improvement_2022} for their ability to better characterize vertical and thin objects such as traffic signs or tree trunks. 
+
+In table \ref{tab:benchmark_RF}, it is observed that the IoU scores with or without these features statistically fall within an overlapping range. To further analyze the significance of each feature, their importances were investigated. 
+
 
 Feature importances can be computed as the mean and standard deviation of the accumulation of impurity decrease within each tree. Impurity decrease refers to the reduction in the criterion value\footnote{Here, it is the Gini index} when a feature is used to split a node in a decision tree. The importance of a feature is calculated as the (normalized) total reduction of the criterion brought by that feature.
 
 Figures \ref{fig:MDI_default} and \ref{fig:MDI_height} display the Mean Decrease Impurity (MDI) feature importances and their standard deviation, respectively for the 18 features of the proposed method \cite{thomas_semantic_2018} and the 21 features including the height features, for each scale. 
 
 In Figure \ref{fig:MDI_default}, the feature at the original scale are less important that the feature at smallest scales. Moreover, the "Number of points" gets more important as the scale decreases, validating the interest of using this new feature. Figure \ref{fig:MDI_height} highlights that the importances of height features are not negligible, especially at the smallest scale. This underscores the value of including more height information in the feature set. 
-
 
 Permutation feature importance is a common method used to assess the significance of features in a classifier prediction, regardless of the model being used. The main idea is to assess how much the model's performance changes when modifying the value of the given feature. This is achieved by randomly shuffling the values of the feature and observing the resulting change in prediction accuracy.
 Unlike the previous method, this approach is not biased by high-cardinality features, ie variables with a high level of diversity in their values.
@@ -248,23 +241,14 @@ Figures \ref{fig:permutation_default} and \ref{fig:permutation_height} display t
 
 It is noteworthy that the verticality of the smallest eigenvector $e_3$ exhibits a significant MDI and permutation feature importance at almost every scales. This observation is consistent with findings in \cite{thomas_semantic_2018}, where it was noted that the verticality of the smallest eigenvectors encodes information about the normal vector's orientation of planar objects. This feature's importance stems from its ability to capture the orientation of objects relative to the ground, which can be crucial for distinguishing between different classes, such as 'Motorcycles', 'Pedestrians', and 'Cars'.
 
-\begin{figure}
-    \hspace*{-2cm}
-    \includegraphics[width=1.3\textwidth]{permutation_feature_importances_DEFAULT.png}
-    \caption{Permutation feature importances with the 18 features used in \cite{thomas_semantic_2018} at each scale. $\mathcal{M}$ refers to the moment.}
-    \label{fig:permutation_default}
-\end{figure}
-\begin{figure}
-    \hspace*{-2cm}
-        \includegraphics[width=1.3\textwidth]{permutation_feature_importances_W_HEIGHT_FEAT.png}
-    \caption{Permutation feature importances for the Paris-rue-Cassette dataset with additional height features (21 features in total for each scale). $\mathcal{M}$ refers to the moment.}
-    \label{fig:permutation_height}
-\end{figure}
-
-
-
-
 \subsection{NPM3D dataset and generalization on an Unseen point clouds}\label{sec:generalization}
+
+\begin{figure}
+    \hspace*{-2cm}
+        \includegraphics[width=1.3\textwidth]{MDI_feature_importances_W_HEIGHT_FEAT.png}
+    \caption{MDI feature importances for the Paris-rue-Cassette dataset with additional height features (21 features in total).}
+    \label{fig:MDI_height}
+\end{figure}
 
 For this experiment, I have randomly selected 100,000 points per class from the MiniLille dataset to train the Random Forest classifier. Here, the number of scales is $S=3$, $r_0=0.8$, $\phi=2$, $\rho=5$ and I used a spherical neighborhood. To assess the generalization ability of the method, I considered points in the MiniParis point cloud with a non-zero labels. Subsequently, I predicted the labels of 34,7651 points from this dataset. The results are presented in Table \ref{tab:results_generalization}. 
 
@@ -291,32 +275,44 @@ The computation of features for the test points required 4 hours, while the trai
 \label{tab:results_generalization}
 \end{table}
 
-\section{Improvement proposals}\label{sec:classification}
+\begin{figure}
+    \hspace*{-2cm}
+    \includegraphics[width=1.3\textwidth]{permutation_feature_importances_DEFAULT.png}
+    \caption{Permutation feature importances with the 18 features used in \cite{thomas_semantic_2018} at each scale. $\mathcal{M}$ refers to the moment.}
+    \label{fig:permutation_default}
+\end{figure}
 
-One of the requirements for this project was to propose improvements to the method. I have proposed and implemented the addition of height features to the feature set. The results were discussed in section \ref{sec:compare_w/o_height}.
+\section{Proposals for Improvement}\label{sec:classification}
 
-\textbf{Speed up attempts.} I also tried to speed up the feature computation code. I computed the features on multiple CPU processes using \texttt{multiprocessing} package to speed up loops. Howerver, objects placed on multiprocessing queues are pickled, transferred over the queue, and then unpickled. The pickling and unpickling steps add overhead, and for large objects this overhead can be significant. This is because large objects require more data to be pickled and transferred, and the unpickling step requires reconstructing the entire object. 
+As part of the project's requirements, proposals for enhancing the method were considered and implemented. The addition of height features to the feature set were discussed in Section \ref{sec:compare_w/o_height}.
 
-Then, I tried Numba which is a just-in-time compiler for Python that works best on code that uses NumPy arrays and functions. Computing the features of 40 points with 4 scales on the subsampled Paris-rue-Cassette point cloud (about 1,288,215 points) took 54 seconds. I computed and saved the features of all points, excluding the points with label 0. 
+\textbf{Speed Optimization Attempts.} Efforts were made to accelerate the feature computation process. Initially, I experimented with parallelization using the \texttt{multiprocessing} package to distribute computations across multiple CPU processes. However, the overhead introduced by pickling and unpickling large objects transferred over multiprocessing queues proved to be a limiting factor, particularly for datasets with substantial size. This is because large objects require more data to be pickled and transferred, and the unpickling step requires reconstructing the entire object. 
 
-\textbf{Classification methods.} Random Forest classifier is usually used for semantic classification of 3D point clouds \cite{thomas_semantic_2018,hackel_fast_nodate}. Indeed, it is directly applicable to multi-class problems and has been shown to yield good results in reasonable time on large point clouds \cite{weinmann_semantic_2015,atik_machine_2021}. I use Gini index as splitting criterion.
+Subsequently, I explored the use of Numba, a just-in-time compiler for Python that works best on code that uses NumPy arrays and functions. Computing the features of 40 points with 4 scales on the subsampled Paris-rue-Cassette point cloud (about 1,288,215 points) took 54 seconds. I computed and saved the features of all points, excluding those labeled as 0. This process took 5 hours.
 
-However, other classification methods could be considered \cite{atik_machine_2021}. 
+\textbf{Alternative Classification Method.} Random Forest classifier is commonly used for semantic classification of 3D point clouds \cite{thomas_semantic_2018,hackel_fast_nodate}. It is well-suited for multi-class problems and has been shown to yield good results in reasonable time on large point clouds \cite{weinmann_semantic_2015,atik_machine_2021}. Nevertheless, alternative classification methods were explored in a study by Atik et al. \cite{atik_machine_2021}, where the authors compared different classifiers across various datasets. These classifiers encompassed Random Forest, a Multilayer Perceptron algorithm, Support Vector Machines, and Linear Discriminant Analysis. The authors observed that the performance of classifiers varied depending on the dataset.
 
-Boosting is an ensemble machine learning approach. Boosting algorithms combine multiple low accuracy or weak models to create high accuracy or strong model. Among the most popular boosting algorithms are AdaBoost, Gradient Boosting, and XGBoost.
+I decided to explore boosting algorithms. Boosting algorithms, such as AdaBoost, Gradient Boosting, and XGBoost, are well-known ensemble machine learning approaches that combine multiple weak models to create a robust classifier. I compared the results obtained on the Paris-rue-Cassette point cloud (see Table \ref{tab:benchmark_RF}) with those obtained using a Gradient Tree Boosting classifier \cite{ke_lightgbm_2017}. Similar to the Random Forest classifier used in Section \ref{sec:experiments}, this approach used 150 trees and the Gini criterion, with the same class weights applied to balance class frequencies. The results are presented in Table \ref{tab:benchmark_Boosting}. 
+
+Although the Gradient Tree Boosting classifier did not exhibit faster training times compared to the Random Forest classifier, it demonstrated improvements in overall weighted Intersection over Union (IoU). For the 'Cars' class it enhanced the mean IoU by 22\% of the score obtained with the Random Forest classifier. While these results did not yield a significant improvement, they underscored the potential of boosting classifiers to enhance classification performance.
+
+\begin{figure}
+    \hspace*{-2cm}
+        \includegraphics[width=1.3\textwidth]{permutation_feature_importances_W_HEIGHT_FEAT.png}
+    \caption{Permutation feature importances for the Paris-rue-Cassette dataset with additional height features (21 features in total for each scale). $\mathcal{M}$ refers to the moment.}
+    \label{fig:permutation_height}
+\end{figure}
 
 \section{Conclusion}
 
-In 2019, Thomas et al. \cite{thomas_kpconv_2019} propose a deep learning approach for semantic segmentation using convolutions on point clouds.
+Our investigation into semantic classification using multiscale features has provided valuable insights into the efficiency of various feature extraction approaches and their impact on classification performance. 
+Through comparative analysis, we have demonstrated the superiority of employing spherical neighborhoods over KNN methods, emphasizing the importance of contextual information in accurately characterizing point cloud data. \\ 
+Additionally, our assessment of additional height features, has underscored their significance in capturing vertical characteristics. Importantly, our findings align with previous research, highlighting the importance of considering spatial orientation in distinguishing between different object classes. \\ 
+Moreover, we have studied the robust generalization of the method to unseen datasets, as evidenced by its performance on the MiniParis dataset using only the MiniLille dataset for training. \\ 
+Regarding the classification algorithms, while Random Forest Classifier works well, other classifier could be considered. We have evaluated the approach with Gradient Tree Boosting classifier but alternative algorithm could be explored. \\ 
+Looking ahead, alternative semantic classification methods without the need for explicit feature computation have shown promising results. For instance, In 2019, Thomas et al. \cite{thomas_kpconv_2019} proposed a deep learning approach for semantic classification using convolutions on point clouds in the Kernel Point Convolution (KPConv) network, which operates directly on radius neighborhoods as input. This avenue presents exciting possibilities for further research and development in the field.
 
-In conclusion, our investigation into semantic classification using multiscale features has yielded valuable insights into the effectiveness of various feature extraction methods and their impact on classification performance. Through comparative analysis, we have demonstrated the superiority of employing spherical neighborhoods over KNN methods, emphasizing the importance of contextual information in accurately characterizing point cloud data. Additionally, our assessment of additional features, such as height features, has underscored their significance in capturing vertical characteristics, thereby enhancing classification accuracy. Importantly, our findings align with previous research, highlighting the importance of considering spatial orientation in distinguishing between different object classes.
-
-Moving forward, the insights gained from this project can inform the development of more robust and accurate semantic classification algorithms for point cloud data analysis. By incorporating multiscale features and leveraging contextual information effectively, we can enhance the performance of classification models across various real-world applications, from autonomous driving to urban planning and beyond. As technology continues to advance, the integration of sophisticated feature extraction techniques will play a crucial role in unlocking the full potential of point cloud data analysis in diverse domains.
-
-\newpage
 \bibliographystyle{plain}
 \bibliography{ref}
-
-
 
 \end{document}

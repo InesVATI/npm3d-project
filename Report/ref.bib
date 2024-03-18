@@ -21,7 +21,7 @@
 	doi = {10.1016/j.isprsjprs.2015.01.016},
 	pages = {286--304},
 	journaltitle = {{ISPRS} Journal of Photogrammetry and Remote Sensing},
-	journal = {ISPRS Journal of Photogrammetry and Remote Sensing},
+	shortjournal = {{ISPRS} Journal of Photogrammetry and Remote Sensing},
 	author = {Weinmann, Martin and Jutzi, Boris and Hinz, Stefan and Mallet, Clément},
 	urldate = {2024-01-31},
 	date = {2015-07},
@@ -29,15 +29,10 @@
 }
 
 @article{hackel_fast_nodate,
-	AUTHOR = {Hackel, T. and Wegner, J. D. and Schindler, K.},
-	TITLE = {FAST SEMANTIC SEGMENTATION OF 3D POINT CLOUDS WITH STRONGLY
-	VARYING DENSITY},
-	JOURNAL = {ISPRS Annals of the Photogrammetry, Remote Sensing and Spatial Information Sciences},
-	VOLUME = {III-3},
-	YEAR = {2016},
-	PAGES = {177--184},
-	URL = {https://isprs-annals.copernicus.org/articles/III-3/177/2016/},
-	DOI = {10.5194/isprs-annals-III-3-177-2016}
+	title = {{FAST} {SEMANTIC} {SEGMENTATION} {OF} 3D {POINT} {CLOUDS} {WITH} {STRONGLY} {VARYING} {DENSITY}},
+	abstract = {We describe an effective and efﬁcient method for point-wise semantic classiﬁcation of 3D point clouds. The method can handle unstructured and inhomogeneous point clouds such as those derived from static terrestrial {LiDAR} or photogammetric reconstruction; and it is computationally efﬁcient, making it possible to process point clouds with many millions of points in a matter of minutes. The key issue, both to cope with strong variations in point density and to bring down computation time, turns out to be careful handling of neighborhood relations. By choosing appropriate deﬁnitions of a point’s (multi-scale) neighborhood, we obtain a feature set that is both expressive and fast to compute. We evaluate our classiﬁcation method both on benchmark data from a mobile mapping platform and on a variety of large, terrestrial laser scans with greatly varying point density. The proposed feature set outperforms the state of the art with respect to per-point classiﬁcation accuracy, while at the same time being much faster to compute.},
+	author = {Hackel, Timo and Wegner, Jan D and Schindler, Konrad},
+	langid = {english},
 }
 
 @article{mohamed_improvement_2022,
@@ -52,17 +47,24 @@
 	date = {2022-07-13},
 }
 
-@Article{atik_machine_2021,
-AUTHOR = {Atik, Muhammed Enes and Duran, Zaide and Seker, Dursun Zafer},
-TITLE = {Machine Learning-Based Supervised Classification of Point Clouds Using Multiscale Geometric Features},
-JOURNAL = {ISPRS International Journal of Geo-Information},
-VOLUME = {10},
-YEAR = {2021},
-NUMBER = {3},
-ARTICLE-NUMBER = {187},
-URL = {https://www.mdpi.com/2220-9964/10/3/187},
-ISSN = {2220-9964},
-DOI = {10.3390/ijgi10030187}
+@article{atik_machine_2021,
+	title = {Machine Learning-Based Supervised Classification of Point Clouds Using Multiscale Geometric Features},
+	volume = {10},
+	rights = {http://creativecommons.org/licenses/by/3.0/},
+	issn = {2220-9964},
+	url = {https://www.mdpi.com/2220-9964/10/3/187},
+	doi = {10.3390/ijgi10030187},
+	abstract = {3D scene classification has become an important research field in photogrammetry, remote sensing, computer vision and robotics with the widespread usage of 3D point clouds. Point cloud classification, called semantic labeling, semantic segmentation, or semantic classification of point clouds is a challenging topic. Machine learning, on the other hand, is a powerful mathematical tool used to classify 3D point clouds whose content can be significantly complex. In this study, the classification performance of different machine learning algorithms in multiple scales was evaluated. The feature spaces of the points in the point cloud were created using the geometric features generated based on the eigenvalues of the covariance matrix. Eight supervised classification algorithms were tested in four different areas from three datasets (the Dublin City dataset, Vaihingen dataset and Oakland3D dataset). The algorithms were evaluated in terms of overall accuracy, precision, recall, F1 score and process time. The best overall results were obtained for four test areas with different algorithms. Dublin City Area 1 was obtained with Random Forest as 93.12\%, Dublin City Area 2 was obtained with a Multilayer Perceptron algorithm as 92.78\%, Vaihingen was obtained as 79.71\% with Support Vector Machines and Oakland3D with Linear Discriminant Analysis as 97.30\%.},
+	pages = {187},
+	number = {3},
+	journaltitle = {{ISPRS} International Journal of Geo-Information},
+	author = {Atik, Muhammed Enes and Duran, Zaide and Seker, Dursun Zafer},
+	urldate = {2024-03-04},
+	date = {2021-03},
+	langid = {english},
+	note = {Number: 3
+Publisher: Multidisciplinary Digital Publishing Institute},
+	keywords = {classification, geometric features, {LiDAR}, machine learning, multiscale, point cloud},
 }
 
 @misc{thomas_kpconv_2019,
@@ -72,10 +74,59 @@ DOI = {10.3390/ijgi10030187}
 	abstract = {We present Kernel Point Convolution ({KPConv}), a new design of point convolution, i.e. that operates on point clouds without any intermediate representation. The convolution weights of {KPConv} are located in Euclidean space by kernel points, and applied to the input points close to them. Its capacity to use any number of kernel points gives {KPConv} more flexibility than fixed grid convolutions. Furthermore, these locations are continuous in space and can be learned by the network. Therefore, {KPConv} can be extended to deformable convolutions that learn to adapt kernel points to local geometry. Thanks to a regular subsampling strategy, {KPConv} is also efficient and robust to varying densities. Whether they use deformable {KPConv} for complex tasks, or rigid {KPconv} for simpler tasks, our networks outperform state-of-the-art classification and segmentation approaches on several datasets. We also offer ablation studies and visualizations to provide understanding of what has been learned by {KPConv} and to validate the descriptive power of deformable {KPConv}.},
 	number = {{arXiv}:1904.08889},
 	publisher = {{arXiv}},
-	author = {Thomas, Hugues and Qi, Charles R. and Deschaud, Jean-Emmanuel and Marcotegui, Beatriz and Goulette, FranÃ§ois and Guibas, Leonidas J.},
+	author = {Thomas, Hugues and Qi, Charles R. and Deschaud, Jean-Emmanuel and Marcotegui, Beatriz and Goulette, François and Guibas, Leonidas J.},
 	urldate = {2024-03-04},
 	date = {2019-08-19},
 	eprinttype = {arxiv},
 	eprint = {1904.08889 [cs]},
 	keywords = {Computer Science - Computer Vision and Pattern Recognition},
+}
+
+@article{landrieu_structured_2017,
+	title = {A structured regularization framework for spatially smoothing semantic labelings of 3D point clouds},
+	volume = {132},
+	issn = {09242716},
+	url = {https://linkinghub.elsevier.com/retrieve/pii/S0924271617302988},
+	doi = {10.1016/j.isprsjprs.2017.08.010},
+	abstract = {In this paper, we introduce a mathematical framework for obtaining spatially smooth semantic labelings of 3D point clouds from a pointwise classiﬁcation. We argue that structured regularization oﬀers a more versatile alternative to the standard graphical model approach. Indeed, our framework allows us to choose between a wide range of ﬁdelity functions and regularizers, inﬂuencing the properties of the solution. In particular, we investigate the conditions under which the smoothed labeling remains probabilistic in nature, allowing us to measure the uncertainty associated with each label. Finally, we present eﬃcient algorithms to solve the corresponding optimization problems.},
+	pages = {102--118},
+	journaltitle = {{ISPRS} Journal of Photogrammetry and Remote Sensing},
+	shortjournal = {{ISPRS} Journal of Photogrammetry and Remote Sensing},
+	author = {Landrieu, Loïc and Raguet, Hugo and Vallet, Bruno and Mallet, Clément and Weinmann, Martin},
+	urldate = {2024-03-05},
+	date = {2017-10},
+	langid = {english},
+}
+
+@inproceedings{landrieu_comparison_2017,
+	location = {Fort Worth, Texas, United States},
+	title = {Comparison of belief propagation and graph-cut approaches for contextual classification of 3D lidar point cloud data},
+	url = {https://hal.science/hal-01500777},
+	series = {{IGARSS}},
+	abstract = {In this paper, we focus on the classification of lidar point cloud data acquired via mobile laser scanning, whereby the classification relies on a context model based on a Conditional Random Field ({CRF}). We present two approximate inference algorithms based on belief propagation, as well as a graph-cut-based approach not yet applied in this context. To demonstrate the performance of our approach, we present the classification results derived for a standard benchmark dataset. These results clearly indicate that the graph-cut-based method is able to retrieve a labeling of higher likelihood in only a fraction of the time needed for the other approaches. The higher likelihood, in turn, translates into a significant gain in the accuracy of the obtained classification.},
+	booktitle = {2017 {IEEE} International Geoscience and Remote Sensing Symposium ({IGARSS})},
+	author = {Landrieu, Loic and Mallet, Clément and Weinmann, Martin},
+	urldate = {2024-03-05},
+	date = {2017-07},
+	keywords = {classification, belief propagation, graph-cut, Point cloud, spatial regularization},
+}
+
+@article{deschaud_fast_nodate,
+	title = {A Fast and Accurate Plane Detection Algorithm for Large Noisy Point Clouds Using Filtered Normals and Voxel Growing},
+	abstract = {With the improvement of 3D scanners, we produce point clouds with more and more points often exceeding millions of points. Then we need a fast and accurate plane detection algorithm to reduce data size. In this article, we present a fast and accurate algorithm to detect planes in unorganized point clouds using ﬁltered normals and voxel growing. Our work is based on a ﬁrst step in estimating better normals at the data points, even in the presence of noise. In a second step, we compute a score of local plane in each point. Then, we select the best local seed plane and in a third step start a fast and robust region growing by voxels we call voxel growing. We have evaluated and tested our algorithm on different kinds of point cloud and compared its performance to other algorithms.},
+	author = {Deschaud, Jean-Emmanuel and Goulette, François},
+	langid = {english},
+}
+
+@inproceedings{ke_lightgbm_2017,
+	title = {{LightGBM}: A Highly Efficient Gradient Boosting Decision Tree},
+	volume = {30},
+	url = {https://papers.nips.cc/paper_files/paper/2017/hash/6449f44a102fde848669bdd9eb6b76fa-Abstract.html},
+	shorttitle = {{LightGBM}},
+	abstract = {Gradient Boosting Decision Tree ({GBDT}) is a popular machine learning algorithm, and has quite a few effective implementations such as {XGBoost} and {pGBRT}. Although many engineering optimizations have been adopted in these implementations, the efficiency and scalability are still unsatisfactory when the feature dimension is high and data size is large. A major reason is that for each feature, they need to scan all the data instances to estimate the information gain of all possible split points, which is very time consuming. To tackle this problem, we propose two novel techniques: {\textbackslash}emph\{Gradient-based One-Side Sampling\} ({GOSS}) and {\textbackslash}emph\{Exclusive Feature Bundling\} ({EFB}). With {GOSS}, we exclude a significant proportion of data instances with small gradients, and only use the rest to estimate the information gain. We prove that, since the data instances with larger gradients play a more important role in the computation of information gain, {GOSS} can obtain quite accurate estimation of the information gain with a much smaller data size. With {EFB}, we bundle mutually exclusive features (i.e., they rarely take nonzero values simultaneously), to reduce the number of features. We prove that finding the optimal bundling of exclusive features is {NP}-hard, but a greedy algorithm can achieve quite good approximation ratio (and thus can effectively reduce the number of features without hurting the accuracy of split point determination by much). We call our new {GBDT} implementation with {GOSS} and {EFB} {\textbackslash}emph\{{LightGBM}\}. Our experiments on multiple public datasets show that, {LightGBM} speeds up the training process of conventional {GBDT} by up to over 20 times while achieving almost the same accuracy.},
+	booktitle = {Advances in Neural Information Processing Systems},
+	publisher = {Curran Associates, Inc.},
+	author = {Ke, Guolin and Meng, Qi and Finley, Thomas and Wang, Taifeng and Chen, Wei and Ma, Weidong and Ye, Qiwei and Liu, Tie-Yan},
+	urldate = {2024-03-18},
+	date = {2017},
 }

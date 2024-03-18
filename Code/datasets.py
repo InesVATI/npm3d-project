@@ -1,10 +1,7 @@
-from sklearn.ensemble import RandomForestClassifier
-from sklearn.metrics import accuracy_score, jaccard_score
 from ply import read_ply
 from multiscale_features import extract_multiscale_features
 import numpy as np
 import pickle
-import time
 import os
 import configparser
 
@@ -239,40 +236,6 @@ class MiniParisLilleDataset(PointDataset):
             query_labels = np.hstack((query_labels, labels[query_inds]))
     
         return query_features, query_labels
-    
-    def extract_test_features(self, path:str):
-        ply__files = [f for f in os.listdir(path) if f.endswith('.ply')]
-        n_feats = 21 if self.method_config.getboolean('add_height_feats') else 18
-        test_features = np.empty((0, self.method_config.getint('nb_scales') * n_feats))
-
-        for file in ply__files:
-
-            cloud_ply = read_ply(os.path.join(path, file))
-            cloud = np.vstack((cloud_ply['x'], cloud_ply['y'], cloud_ply['z'])).T
-
-            feature_file = file[:-4] + '_features.npy'
-            feature_file = os.path.join(path, feature_file)
-
-            if os.path.exists(feature_file):
-                features = np.load(feature_file)
-
-            else:
-                features = extract_multiscale_features(cloud, 
-                                                       cloud,
-                                                       r0=self.method_config.getfloat('r0'),
-                                                       nb_scales=self.method_config.getint('nb_scales'),
-                                                       ratio_radius=self.method_config.getfloat('ratio_radius'),
-                                                       rho=self.method_config.getfloat('rho'),
-                                                       k=self.method_config.getint('k'),
-                                                       neighborhood_def=self.method_config['neighborhood_def'],
-                                                       add_height_feats=self.method_config.getboolean('add_height_feats')
-                                                    )
-                np.save(feature_file, features) 
-            test_features = np.vstack((test_features, features))
-
-        return test_features
-    
-
     
 
 

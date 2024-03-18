@@ -1,51 +1,14 @@
-import numpy as np
-from ply import write_ply
 import time
 from pathlib import Path
-from utils import grid_subsampling
-from process_data import get_CassetteDataset
-from multiscale_features import extract_multiscale_features
 from classification import repeat_method, perform_classification
 from datasets import CassetteDataset, MiniParisLilleDataset
 from sklearn.ensemble import RandomForestClassifier, HistGradientBoostingClassifier
 from sklearn.metrics import jaccard_score
-import pickle
 
 if __name__ == '__main__':
     root_folder = Path(__file__).parent.parent
-    if False: # save features on all cloud
-
-        cloud, label = get_CassetteDataset(filename=root_folder / '__data' / 'Cassette_Cloud_forClassification_subsampled.ply')
-        N = cloud.shape[0]
-        print('cloud', cloud.shape)
-        nonlabel_ind = label == 0
-        
-        # select random training set and testing set among point with label different from 0
-        # rd_ind = np.random.choice(np.arange(N)[~nonlabel_ind], 40, replace=False)
-        training_points = cloud[~nonlabel_ind]
-        labels_training = label[~nonlabel_ind]
-
-        t0 = time.time()
-        features = extract_multiscale_features(training_points,
-                                            cloud, 
-                                            r0=.5,
-                                            nb_scales=1, 
-                                            ratio_radius=2., 
-                                            rho=5, 
-                                            neighborhood_def="spherical")
-        t1 = time.time()
-        print('compute multiscale features took', t1-t0, 'seconds')
-        # print('features', features.shape)
-        # print('feature', features.nonzero())
-
-        # save features and corresponding labels
-        with open(root_folder / '__data' / 'Cassette_features_scale0.pkl', 'wb') as f:
-            pickle.dump(features, f)
-        
-        with open(root_folder / '__data' / 'Cassette_labels.pkl', 'wb') as f:
-            pickle.dump(labels_training, f)
     
-    if False :
+    if True : # Comparison RandomForest vs HistGradientBoosting
         method = 'DEFAULT'
         dataset = CassetteDataset(num_per_class=1000,
                                   data_folder=root_folder / '__data',
@@ -62,8 +25,8 @@ if __name__ == '__main__':
         print('class_score', class_score)
         print('jaccard_score', jaccard_score(val_labels, val_pred, average='weighted'))
 
-    if False :
-        for method in ['W_HEIGHT_FEAT'] :
+    if True : # Benchmarking
+        for method in ['DEFAULT', 'W_HEIGHT_FEAT', 'NO_MULTI_SCALE', 'KNN_NEIGH_DEF'] :
             dataset = CassetteDataset(num_per_class=1000,
                                     data_folder=root_folder / '__data',
                                     method=method)
@@ -80,11 +43,8 @@ if __name__ == '__main__':
                         save_results_file=root_folder / '__results' / 'Cassette_benchmarkRF_results.pkl'
                         )
             
-    if False:
-        with open(root_folder / '__results' / 'Cassette_benchmarkBoosting_results.pkl', 'rb') as f:
-            results = pickle.load(f)
-            print('results', results)
-    if False : # train on MiniLille and predict on MiniParis
+
+    if True : # train on MiniLille and predict on MiniParis
         data_path = root_folder/'__data'
         dataset = MiniParisLilleDataset(num_per_class=100000,
                                         data_folder=data_path,
@@ -97,7 +57,7 @@ if __name__ == '__main__':
         print(f"Time to get random train and val points: {t1-t0} seconds")
 
 
-        # # perform classification
+        # perform classification
         t0 = time.time()
         classifier = RandomForestClassifier(n_estimators=150,
                                             criterion="gini",
@@ -113,23 +73,6 @@ if __name__ == '__main__':
         class_score = jaccard_score(val_labels, val_pred, average=None)
         print('class_score', class_score)
         print('weighted jaccard_score', jaccard_score(val_labels, val_pred, average='weighted'))
-
-        # t0 = time.time()
-        # features = dataset.extract_test_features(f'{root_folder}/__data/test')
-        # t1 = time.time()
-        # print('compute multiscale features on MiniParis took', t1-t0, 'seconds')
-
-    # with open(root_folder / '__data' / 'training' / 'trainLille_features.pkl', 'rb') as f:
-    #     train_features = pickle.load(f)
-    # with open(root_folder / '__data' / 'test' / 'MiniParis1_labels.npy', 'rb') as f:    
-    #     test_labels = np.load(f)
-
-    # for i in range(1, 7):
-    #     mask = test_labels == i
-    #     print(f'class {i} : {mask.sum()}')
-
-    # print('test_labels', test_labels.shape)
-
 
 
 
